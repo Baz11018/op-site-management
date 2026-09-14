@@ -11,38 +11,33 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>OP Site Management</title>
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--text:#111827;--muted:#7a8294;--line:#e6e9f0;--blue:#526ef5;--violet:#7b55f7;--red:#e5484d;--orange:#e68a2e;--green:#24a467;--shadow:0 8px 28px rgba(35,45,80,.07)}
+:root{--bg:#f6f8fc;--card:#fff;--text:#0d1830;--muted:#78849a;--line:#e9edf5;--blue:#2878ff;--purple:#7555ff;--red:#ef4d57;--orange:#ff9418;--green:#18a65b;--shadow:0 10px 30px rgba(34,52,84,.07)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:90px}
-button,input,select,textarea{font:inherit}
-.wrap{max-width:720px;margin:auto;padding:18px 16px 28px}
-.top{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.brand{font-size:28px;font-weight:800;letter-spacing:-.7px}.sub{font-size:13px;color:var(--muted);margin-top:3px}
-.back{border:0;background:#fff;border-radius:13px;padding:9px 12px;font-weight:700;box-shadow:var(--shadow)}
-.card{background:var(--card);border-radius:22px;padding:17px;box-shadow:var(--shadow);margin-bottom:13px}
-.project{cursor:pointer}.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.title{font-size:18px;font-weight:800}.small{font-size:13px;color:var(--muted);line-height:1.4}
-.section{font-size:12px;font-weight:800;letter-spacing:.7px;color:#687084;margin:20px 4px 9px}
-.counts{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.chip,.pill{font-size:12px;font-weight:750;border-radius:999px;padding:6px 9px;background:#eef1f8}
-.red{color:#b92e33;background:#fff0f0}.orange{color:#a85a13;background:#fff3e7}.blue{color:#4057cc;background:#eef1ff}.green{color:#187c4c;background:#eaf8f0}
-.btn{border:0;border-radius:15px;padding:14px 15px;font-weight:800}.primary{background:linear-gradient(135deg,var(--blue),var(--violet));color:white}.secondary{background:#eef1f8;color:var(--text)}.danger{background:#fff0f0;color:var(--red)}.success{background:#eaf8f0;color:#187c4c}.block{width:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;padding-bottom:92px}
+button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:650px;margin:auto;padding:18px 16px 30px}
+.top{display:flex;align-items:center;gap:12px;margin:8px 0 22px}.brand{font-size:29px;font-weight:800;letter-spacing:-.9px}.sub{font-size:14px;color:var(--muted);margin-top:3px}.back{border:0;background:#fff;border-radius:18px;padding:11px 14px;font-weight:750;color:var(--blue);box-shadow:var(--shadow)}
+.card{background:var(--card);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:13px}.project{cursor:pointer}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px}.title{font-size:18px;font-weight:800}.small{font-size:13px;color:var(--muted);line-height:1.45}
+.section{font-size:12px;font-weight:800;letter-spacing:.8px;color:#758096;margin:22px 5px 10px}.counts{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.chip,.pill{font-size:12px;font-weight:800;border-radius:999px;padding:7px 10px;background:#eef2f8}.red{color:#c52e37;background:#fff0f1}.orange{color:#b95d00;background:#fff2e2}.blue{color:#1762d4;background:#eaf3ff}.green{color:#087e42;background:#e7f8ef}
+.btn{border:0;border-radius:17px;padding:15px 16px;font-weight:800;min-height:52px}.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}.secondary{background:#edf2fa;color:var(--text)}.danger{background:#fff0f1;color:var(--red)}.success{background:#e5f8ed;color:#078341}.orangeBtn{background:#fff0df;color:#bd6200}.blueBtn{background:#e8f2ff;color:#1767d8}.block{width:100%}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
-.hero{background:linear-gradient(135deg,#e8efff,#eee8ff)}.hero h1{margin:0;font-size:26px}
-.grid4{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.metric{background:rgba(255,255,255,.72);border-radius:16px;padding:12px}.metric b{display:block;font-size:22px}.metric span{font-size:11px;color:var(--muted);font-weight:700}
-.item{border-left:5px solid #ccd2df;padding-left:14px}.item.overdue{border-color:var(--red)}.item.follow{border-color:var(--orange)}.item.check{border-color:var(--blue)}.item.do{border-color:#677181}.item.ready{border-color:var(--green)}
-.next{font-weight:800;margin-top:7px}.meta{margin-top:7px;font-size:12px;color:var(--muted)}
-.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:800;color:#697184;margin:0 0 6px 3px}
-.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;color:var(--text);outline:none}.field textarea{min-height:84px;resize:vertical}
-.toggle{display:flex;align-items:center;justify-content:space-between;background:#f7f8fb;border-radius:14px;padding:12px 13px;margin-bottom:12px}.toggle input{width:22px;height:22px}
-.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom));z-index:10}
-.nav button{border:0;background:none;font-size:10px;font-weight:750;color:#8a91a0;padding:7px 2px}.nav button.active{color:var(--blue)}.nav i{display:block;font-style:normal;font-size:20px}
-.fab{position:fixed;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;font-size:31px;box-shadow:0 10px 25px rgba(82,110,245,.35);z-index:11}
-.tabs{display:flex;gap:7px;overflow:auto}.tabs button{white-space:nowrap;border:0;border-radius:999px;padding:9px 12px;background:#e9edf5;font-weight:750;font-size:12px}.tabs button.on{background:#1f2937;color:#fff}
-.notice{padding:11px 13px;border-radius:14px;background:#fff7df;font-size:12px;color:#795d00;margin-top:10px}.empty{text-align:center;color:var(--muted);padding:25px 10px}.version{text-align:center;color:#9aa1ae;font-size:11px;margin-top:18px}
-.timeline{border-left:2px solid #e1e5ee;margin:12px 0 0 8px;padding-left:15px}.event{margin-bottom:12px}
+.hero{background:#fff}.hero h1{margin:0;font-size:27px}.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.metric{border-radius:18px;padding:15px}.metric b{display:block;font-size:24px}.metric span{font-size:11px;font-weight:800}.metric.red{background:#fff0f1}.metric.orange{background:#fff2e2}.metric.blue{background:#eaf3ff}.metric.green{background:#e7f8ef}
+.item{padding:16px 17px;cursor:pointer}.itemrow{display:flex;gap:13px;align-items:center}.statusIcon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:20px;flex:0 0 42px}.statusIcon.red{background:#fff0f1}.statusIcon.orange{background:#fff2e2}.statusIcon.blue{background:#eaf3ff}.statusIcon.green{background:#e7f8ef}
+.meta{margin-top:5px;font-size:12px;color:var(--muted)}
+.field{margin-bottom:12px}.field label{display:block;font-size:11px;font-weight:800;color:#778298;margin:0 0 6px 4px;letter-spacing:.5px}.field input,.field select{width:100%;border:1px solid var(--line);background:#fff;border-radius:17px;padding:15px;color:var(--text);outline:none;font-size:16px}
+.toggle{display:flex;align-items:center;justify-content:space-between;background:#f3f6fb;border-radius:18px;padding:15px;margin:8px 0 16px}.toggle input{width:25px;height:25px}
+.segment{display:grid;grid-template-columns:1fr 1fr;background:#edf1f7;border-radius:14px;padding:3px;margin-bottom:16px}.segment button{border:0;border-radius:11px;padding:10px;font-weight:800;background:transparent;color:#68758c}.segment button.on{background:var(--blue);color:#fff}
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 8px calc(7px + env(safe-area-inset-bottom));z-index:10}.nav button{border:0;background:none;font-size:10px;font-weight:700;color:#8993a5;padding:6px 2px}.nav button.active{color:var(--blue)}.nav i{display:block;font-style:normal;font-size:20px;margin-bottom:2px}
+.fab{position:fixed;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:31px;box-shadow:0 10px 25px rgba(55,102,255,.28);z-index:11}
+.tabs{display:flex;gap:7px;overflow:auto}.tabs button{white-space:nowrap;border:0;border-radius:999px;padding:9px 13px;background:#e9edf5;font-weight:750;font-size:12px}.tabs button.on{background:var(--text);color:#fff}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}.version{text-align:center;color:#a0a8b7;font-size:11px;margin-top:18px}
+.statusPanel{border-radius:20px;padding:15px 16px;margin-top:18px}.statusPanel.orange{background:#fff1df}.statusPanel.green{background:#e6f8ee}.statusPanel.blue{background:#e9f3ff}.statusBig{font-size:14px;font-weight:850}.statusSub{font-size:12px;margin-top:4px;opacity:.75}
+.actionStack{display:grid;gap:10px;margin-top:12px}.actionBtn{width:100%;border:0;border-radius:18px;padding:17px 14px;font-weight:850;font-size:15px}.actionBtn.blue{background:#e8f2ff;color:#1266dc}.actionBtn.orange{background:#fff0df;color:#bd6200}.actionBtn.green{background:#e4f8ec;color:#078642}.actionBtn.gray{background:#eef2f8;color:#263247}
+.materialGroups .card{padding:0;overflow:hidden}.materialRow{display:flex;align-items:center;gap:12px;padding:17px;border-bottom:1px solid var(--line)}.materialRow:last-child{border-bottom:0}.materialRow .count{margin-left:auto;font-weight:800}.materialRow .arrow{color:#a1a9b7}
+.historyToggle{border:0;background:none;color:var(--blue);font-weight:750;padding:10px 2px}.timeline{border-left:2px solid #e5e9f1;margin:8px 0 0 8px;padding-left:15px}.event{margin-bottom:12px}
 .hidden{display:none!important}
-@media print{body{background:white;padding:0}.nav,.fab,.no-print,.back{display:none!important}.wrap{max-width:none;padding:0}.card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}.report-title{display:block!important}}
-.report-title{display:none}
+@media print{body{background:#fff;padding:0}.nav,.fab,.no-print,.back{display:none!important}.wrap{max-width:none;padding:0}.card{box-shadow:none;border:1px solid #ddd}.report-title{display:block!important}}.report-title{display:none}
 </style>
 </head>
 <body>
@@ -52,7 +47,7 @@ button,input,select,textarea{font:inherit}
 "use strict";
 
 var APP="OP Site Management";
-var VERSION="1.1";
+var VERSION="1.2";
 var KEY="op-site-management-v1-data";
 var state={projects:[]};
 var view={screen:"projects",projectId:"",tab:"today",filter:"all",itemId:""};
@@ -86,14 +81,14 @@ function nav(){
  return h+"</div>"
 }
 function itemCard(i){
- var late=overdueDays(i),cls=isReady(i)?"ready":bucket(i),meta="";
- if(i.responsible)meta+="Responsible: "+esc(i.responsible);
- if(late>0)meta+=(meta?" · ":"")+'<b style="color:var(--red)">'+late+' day'+(late===1?"":"s")+' overdue</b>';
- return '<div class="card item '+cls+'" onclick="App.openItem(\''+i.id+'\')">'+
- '<div class="between"><div><div class="title">'+esc(i.title)+'</div><div class="small">'+esc(i.area||"General")+' · '+(i.kind==="issue"?"Issue":"Task")+'</div></div><span>›</span></div>'+
- 
- (i.requiresMaterial?'<div class="meta">Material: <b>'+esc(i.materialStatus||"requested")+'</b></div>':'')+
- '<div class="meta">'+meta+'</div></div>'
+ var late=overdueDays(i),m=i.requiresMaterial?(i.materialStatus||"requested"):"none",cl="blue",ico="✓",label="";
+ if(isDone(i)){cl="green";ico="✓";label="Done"}
+ else if(m==="received"){cl="green";ico="🔧";label="Ready to install"}
+ else if(m==="ordered"){cl="orange";ico="⏱";label="Ordered "+ageText(i.orderedAt)}
+ else if(m==="requested"){cl="orange";ico="📦";label="Material to order"}
+ else if(late>0){cl="red";ico="!";label="Overdue"}
+ else {cl="blue";ico="✓";label="Open"}
+ return '<div class="card item" onclick="App.openItem(\''+i.id+'\')"><div class="itemrow"><div class="statusIcon '+cl+'">'+ico+'</div><div style="min-width:0;flex:1"><div class="title">'+esc(i.title)+'</div><div class="small">'+esc(i.area||"General")+(i.responsible?' · '+esc(i.responsible):'')+'</div><div class="meta">'+label+'</div></div><span style="color:#a2abba">›</span></div></div>'
 }
 function projectsView(){
  var h='<div class="wrap">'+top(APP,"Simple site control",false)+'<div class="section">PROJECTS</div>',i,p,c;
@@ -110,23 +105,30 @@ function projectsView(){
  return h
 }
 function todayView(){
- var p=project(),c=counts(p),h='<div class="card hero"><h1>'+esc(p.name)+'</h1><div class="small">'+new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})+'</div>'+
- '<div class="grid4"><div class="metric"><b>'+c.over+'</b><span>URGENT</span></div><div class="metric"><b>'+c.follow+'</b><span>FOLLOW UP</span></div><div class="metric"><b>'+countAction(p,"check")+'</b><span>CHECK</span></div><div class="metric"><b>'+c.ready+'</b><span>READY</span></div></div></div>';
- var groups=[["overdue","🔴 URGENT / OVERDUE"],["follow","📞 FOLLOW UP"],["check","👁 CHECK"],["do","🔨 DO"],["ready","🟢 READY TO INSTALL"]],g,i,arr,j;
- for(g=0;g<groups.length;g++){arr=[];for(i=0;i<p.items.length;i++){var x=p.items[i];if(isDone(x))continue;if(groups[g][0]==="ready"){if(isReady(x))arr.push(x)}else if(!isReady(x)&&bucket(x)===groups[g][0])arr.push(x)}
- if(arr.length){h+='<div class="section">'+groups[g][1]+' · '+arr.length+'</div>';for(j=0;j<arr.length;j++)h+=itemCard(arr[j])}}
- if(!c.open)h+='<div class="card empty">Everything is under control. ✓</div>';
+ var p=project(),c=counts(p),h='<div class="card hero"><h1>Today</h1><div class="small">'+new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})+'</div>'+
+ '<div class="grid4"><div class="metric red"><b>'+c.over+'</b><span>OVERDUE</span></div><div class="metric orange"><b>'+c.follow+'</b><span>FOLLOW UP</span></div><div class="metric blue"><b>'+countWaiting(p)+'</b><span>WAITING MATERIAL</span></div><div class="metric green"><b>'+c.ready+'</b><span>READY TO INSTALL</span></div></div></div>';
+ var arr=[],i;for(i=0;i<p.items.length;i++)if(!isDone(p.items[i]))arr.push(p.items[i]);
+ if(arr.length){h+='<div class="section">NEXT TO FOLLOW UP</div>';for(i=0;i<arr.length;i++)h+=itemCard(arr[i])}else h+='<div class="card empty">Everything is under control. ✓</div>';
  return h
 }
+function countWaiting(p){var n=0,i;for(i=0;i<p.items.length;i++)if(!isDone(p.items[i])&&p.items[i].requiresMaterial&&p.items[i].materialStatus==="ordered")n++;return n}
 function countAction(p,a){var n=0,i;for(i=0;i<p.items.length;i++){if(!isDone(p.items[i])&&bucket(p.items[i])===a)n++}return n}
 function listView(mode){
- var p=project(),arr=[],i,x,h='<div class="tabs"><button class="'+(view.filter==="all"?"on":"")+'" onclick="App.filter(\'all\')">All</button><button class="'+(view.filter==="open"?"on":"")+'" onclick="App.filter(\'open\')">Open</button><button class="'+(view.filter==="done"?"on":"")+'" onclick="App.filter(\'done\')">Done</button></div>';
- for(i=0;i<p.items.length;i++){x=p.items[i];if(mode==="issues"&&x.kind!=="issue")continue;if(mode==="materials"&&!x.requiresMaterial)continue;if(view.filter==="open"&&isDone(x))continue;if(view.filter==="done"&&!isDone(x))continue;arr.push(x)}
- h+='<div class="section">'+(mode==="issues"?"ISSUES":mode==="materials"?"MATERIALS / ORDERS":"ALL ITEMS")+' · '+arr.length+'</div>';
- if(!arr.length)return h+'<div class="card empty">Nothing here.</div>';
- for(i=0;i<arr.length;i++)h+=itemCard(arr[i]);
- return h
+ var p=project(),arr=[],i,x,h='';
+ if(mode==="materials"){
+   var req=0,ord=0,rec=0,ready=0;
+   for(i=0;i<p.items.length;i++){x=p.items[i];if(isDone(x)||!x.requiresMaterial)continue;if(x.materialStatus==="requested")req++;if(x.materialStatus==="ordered")ord++;if(x.materialStatus==="received")rec++;if(x.materialStatus==="received")ready++}
+   h='<div class="section">MATERIALS</div><div class="materialGroups card">'+
+   matRow("📦","Requested",req,"orange")+matRow("🛒","Ordered",ord,"blue")+matRow("🚚","Received",rec,"blue")+matRow("🔧","Ready to install",ready,"green")+'</div>';
+   var mats=[];for(i=0;i<p.items.length;i++)if(!isDone(p.items[i])&&p.items[i].requiresMaterial)mats.push(p.items[i]);
+   if(mats.length){h+='<div class="section">ITEMS</div>';for(i=0;i<mats.length;i++)h+=itemCard(mats[i])}
+   return h;
+ }
+ for(i=0;i<p.items.length;i++){x=p.items[i];if(mode==="issues"&&x.kind!=="issue")continue;if(view.filter==="open"&&isDone(x))continue;if(view.filter==="done"&&!isDone(x))continue;arr.push(x)}
+ h='<div class="tabs"><button class="'+(view.filter==="all"?"on":"")+'" onclick="App.filter(\'all\')">All</button><button class="'+(view.filter==="open"?"on":"")+'" onclick="App.filter(\'open\')">Open</button><button class="'+(view.filter==="done"?"on":"")+'" onclick="App.filter(\'done\')">Done</button></div><div class="section">'+(mode==="issues"?"ISSUES":"ITEMS")+' · '+arr.length+'</div>';
+ if(!arr.length)return h+'<div class="card empty">Nothing here.</div>';for(i=0;i<arr.length;i++)h+=itemCard(arr[i]);return h
 }
+function matRow(icon,label,n,cl){return '<div class="materialRow"><div class="statusIcon '+cl+'">'+icon+'</div><b>'+label+'</b><span class="count">'+n+'</span><span class="arrow">›</span></div>'}
 function reportView(){
  var p=project(),c=counts(p),h='<div class="report-title"><h1>'+esc(p.name)+'</h1><p>Project Action Report · '+fmt(isoToday())+'</p></div>';
  h+='<div class="card"><div class="title">Project Action Report</div><div class="small" style="margin-top:5px">'+esc(p.name)+' only</div>'+
@@ -142,14 +144,11 @@ function projectShell(){
  return '<div class="wrap">'+top(p.name,"OP Site Management",true)+body+'</div><button class="fab" onclick="App.newItem()">+</button>'+nav()
 }
 function editView(){
- var i=currentItem();
- if(!i)i={kind:"task",title:"",area:"",responsible:"",requiresMaterial:false,materialStatus:"none",status:"open",history:[]};
+ var i=currentItem();if(!i)i={kind:"task",title:"",area:"",responsible:"",requiresMaterial:false,materialStatus:"none",status:"open",history:[]};
  return '<div class="wrap">'+top(i.id?"Edit Item":"New Item",project().name,true)+'<div class="card">'+
- fieldSelect("kind","TYPE",[["task","Task"],["issue","Issue"]],i.kind||"task")+
- fieldText("title","WHAT?",i.title,"e.g. Install AC grille")+
- fieldText("area","WHERE?",i.area,"e.g. Corridor")+
- fieldText("responsible","WHO?",i.responsible,"e.g. Nisha")+
- '<div class="toggle"><b>Material needed</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+'></div>'+
+ '<div class="segment"><button id="segTask" class="'+((i.kind||"task")==="task"?"on":"")+'" onclick="App.kind(\'task\')">Task</button><button id="segIssue" class="'+(i.kind==="issue"?"on":"")+'" onclick="App.kind(\'issue\')">Issue</button></div><input id="kind" type="hidden" value="'+esc(i.kind||"task")+'">'+
+ fieldText("title","WHAT?",i.title,"Install AC Grille")+fieldText("area","WHERE?",i.area,"Corridor")+fieldText("responsible","WHO?",i.responsible,"Nisha")+
+ '<div class="toggle"><b>📦 Material needed</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+'></div>'+
  '<button class="btn primary block" onclick="App.saveItem()">Save</button></div></div>'
 }
 function fieldText(id,label,val,ph){return '<div class="field"><label>'+label+'</label><input id="'+id+'" value="'+esc(val||"")+'" placeholder="'+esc(ph||"")+'"></div>'}
@@ -158,21 +157,25 @@ function fieldArea(id,label,val){return '<div class="field"><label>'+label+'</la
 function fieldSelect(id,label,opts,val){var h='<div class="field"><label>'+label+'</label><select id="'+id+'">',i;for(i=0;i<opts.length;i++)h+='<option value="'+opts[i][0]+'" '+(val===opts[i][0]?"selected":"")+'>'+opts[i][1]+'</option>';return h+'</select></div>'}
 function detailView(){
  var i=currentItem();if(!i){view.screen="project";return projectShell()}
- var late=overdueDays(i),m=i.requiresMaterial?(i.materialStatus||"requested"):"none";
- var st=isDone(i)?"DONE":m==="received"?"READY TO INSTALL":m==="ordered"?"WAITING MATERIAL":m==="requested"?"MATERIAL TO ORDER":late>0?"OVERDUE":"OPEN";
- var cl=isDone(i)||m==="received"?"green":m==="ordered"||m==="requested"?"orange":late>0?"red":"blue";
- var h='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card"><div class="between"><span class="pill '+cl+'">'+st+'</span><button class="back" onclick="App.editItem()">Edit</button></div>'+
- '<div style="margin-top:22px"><div class="title">'+esc(i.area||"General")+'</div>'+(i.responsible?'<div class="small" style="margin-top:7px">Responsible: <b>'+esc(i.responsible)+'</b></div>':'')+'</div>';
+ var m=i.requiresMaterial?(i.materialStatus||"requested"):"none",cl="blue",ico="✓",st="OPEN",sub="";
+ if(isDone(i)){cl="green";ico="✓";st="DONE"}
+ else if(m==="requested"){cl="orange";ico="📦";st="MATERIAL NEEDED";sub="Ready to be ordered"}
+ else if(m==="ordered"){cl="orange";ico="📦";st="WAITING MATERIAL";sub="Ordered "+ageText(i.orderedAt)}
+ else if(m==="received"){cl="green";ico="🚚";st="MATERIAL RECEIVED";sub="Ready to install"}
+ else if(m==="installed"){cl="green";ico="🔧";st="INSTALLED";sub="Ready to close"}
+ var h='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card"><div class="between"><div></div><button class="back" onclick="App.editItem()">Edit</button></div>'+
+ '<div style="margin-top:4px"><div class="title">⌖ '+esc(i.area||"General")+'</div>'+(i.responsible?'<div class="small" style="margin-top:8px">♙ '+esc(i.responsible)+'</div>':'')+'</div>'+
+ '<div class="statusPanel '+cl+'"><div class="statusBig">'+ico+' &nbsp;'+st+'</div>'+(sub?'<div class="statusSub">'+sub+'</div>':'')+'</div><div class="actionStack">';
  if(!isDone(i)&&i.requiresMaterial){
-  if(m==="requested")h+='<button class="btn primary block" style="margin-top:22px" onclick="App.materialStep(\'ordered\')">🛒 ORDERED</button>';
-  if(m==="ordered")h+='<div class="notice">Ordered '+ageText(i.orderedAt)+'</div><button class="btn success block" style="margin-top:12px" onclick="App.materialStep(\'received\')">✓ RECEIVED</button>';
-  if(m==="received")h+='<button class="btn success block" style="margin-top:22px" onclick="App.materialStep(\'installed\')">🔧 INSTALLED</button>';
-  if(m==="installed")h+='<button class="btn success block" style="margin-top:22px" onclick="App.markDone()">✓ DONE</button>';
+  if(m==="requested")h+='<button class="actionBtn blue" onclick="App.materialStep(\'ordered\')">🛒 &nbsp; MARK AS ORDERED</button>';
+  if(m==="ordered")h+='<button class="actionBtn green" onclick="App.materialStep(\'received\')">🚚 &nbsp; MARK AS RECEIVED</button>';
+  if(m==="received")h+='<button class="actionBtn green" onclick="App.materialStep(\'installed\')">🔧 &nbsp; MARK AS INSTALLED</button>';
+  if(m==="installed")h+='<button class="actionBtn blue" onclick="App.markDone()">✓ &nbsp; MARK AS DONE</button>';
  }
- if(!isDone(i)&&!i.requiresMaterial)h+='<button class="btn success block" style="margin-top:22px" onclick="App.markDone()">✓ DONE</button>';
- if(!isDone(i))h+='<button class="btn secondary block" style="margin-top:10px" onclick="App.remind()">🔔 REMIND ME IN 5 DAYS</button>';
- if(isDone(i))h+='<button class="btn secondary block" style="margin-top:22px" onclick="App.reopen()">Reopen</button>';
- h+='</div><div class="section">HISTORY</div><div class="card"><div class="timeline">';
+ if(!isDone(i)&&!i.requiresMaterial)h+='<button class="actionBtn blue" onclick="App.markDone()">✓ &nbsp; MARK AS DONE</button>';
+ if(!isDone(i))h+='<button class="actionBtn gray" onclick="App.remind()">🔔 &nbsp; REMIND ME IN 5 DAYS</button>';
+ if(isDone(i))h+='<button class="actionBtn gray" onclick="App.reopen()">↶ &nbsp; REOPEN</button>';
+ h+='</div></div><button class="historyToggle" onclick="App.toggleHistory()">Show history</button><div id="historyBox" class="card hidden"><div class="timeline">';
  var a=i.history||[],j;if(!a.length)h+='<div class="small">No updates yet.</div>';else for(j=a.length-1;j>=0;j--)h+='<div class="event"><b>'+new Date(a[j].at).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+'</b><div class="small">'+esc(a[j].text)+'</div></div>';
  h+='</div></div><button class="btn danger block" onclick="App.deleteItem()">Delete Item</button></div>';return h
 }
@@ -185,6 +188,8 @@ function render(){
  else app.innerHTML=projectShell()
 }
 window.App={
+ kind:function(k){q("kind").value=k;q("segTask").className=k==="task"?"on":"";q("segIssue").className=k==="issue"?"on":""},
+ toggleHistory:function(){var b=q("historyBox");if(b)b.className=b.className.indexOf("hidden")>=0?"card":"card hidden"},
  newProject:function(){var n=prompt("Project name");if(!n||!n.replace(/\s/g,""))return;var p={id:uid(),name:n.replace(/^\s+|\s+$/g,""),createdAt:stamp(),items:[]};state.projects.unshift(p);save();view={screen:"project",projectId:p.id,tab:"today",filter:"all",itemId:""};render()},
  openProject:function(id){view={screen:"project",projectId:id,tab:"today",filter:"all",itemId:""};render()},
  tab:function(t){view.tab=t;view.screen="project";view.filter="all";render()},
@@ -194,7 +199,7 @@ window.App={
  openItem:function(id){view.itemId=id;view.screen="detail";render()},
  editItem:function(){view.screen="edit";render()},
  toggleMaterial:function(){var b=q("materialBox"),c=q("requiresMaterial");if(b&&c)b.className=c.checked?"":"hidden"},
- saveItem:function(){var title=q("title").value.replace(/^\\s+|\\s+$/g,"");if(!title){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};if(!(i.history instanceof Array))i.history=[];i.kind=q("kind").value;i.title=title;i.area=q("area").value;i.responsible=q("responsible").value;i.requiresMaterial=q("requiresMaterial").checked;if(i.requiresMaterial&&(!old||!old.requiresMaterial)){i.materialStatus="requested";i.requestedAt=stamp();i.history.push({at:stamp(),text:"Material requested"})}if(!i.requiresMaterial)i.materialStatus="none";i.updatedAt=stamp();if(!old){i.history.unshift({at:stamp(),text:"Item created"});project().items.unshift(i)}else{i.history.push({at:stamp(),text:"Item updated"})}save();view.itemId=i.id;view.screen="detail";render()},
+ saveItem:function(){var title=q("title").value.replace(/^\s+|\s+$/g,"");if(!title){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};if(!(i.history instanceof Array))i.history=[];i.kind=q("kind").value;i.title=title;i.area=q("area").value;i.responsible=q("responsible").value;i.requiresMaterial=q("requiresMaterial").checked;if(i.requiresMaterial&&(!old||!old.requiresMaterial)){i.materialStatus="requested";i.requestedAt=stamp();i.history.push({at:stamp(),text:"Material requested"})}if(!i.requiresMaterial)i.materialStatus="none";i.updatedAt=stamp();if(!old){i.history.unshift({at:stamp(),text:"Item created"});project().items.unshift(i)}else{i.history.push({at:stamp(),text:"Item updated"})}save();view.itemId=i.id;view.screen="detail";render()},
  materialStep:function(step){var i=currentItem();if(!i)return;if(!(i.history instanceof Array))i.history=[];i.materialStatus=step;var labels={ordered:"Material ordered",received:"Material received",installed:"Installed"};i[step+"At"]=stamp();i.history.push({at:stamp(),text:labels[step]||step});save();render()},
  remind:function(){var i=currentItem();if(!i)return;var d=new Date();d.setDate(d.getDate()+5);i.reminderAt=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Reminder set for 5 days"});save();render()},
  markDone:function(){var i=currentItem();if(!i)return;i.status="done";if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Marked as done"});save();render()},
