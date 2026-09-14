@@ -52,7 +52,7 @@ button,input,select,textarea{font:inherit}
 "use strict";
 
 var APP="OP Site Management";
-var VERSION="1.0";
+var VERSION="1.1";
 var KEY="op-site-management-v1-data";
 var state={projects:[]};
 var view={screen:"projects",projectId:"",tab:"today",filter:"all",itemId:""};
@@ -70,11 +70,11 @@ function project(){var i;for(i=0;i<state.projects.length;i++){if(state.projects[
 function currentItem(){var p=project(),i;if(!p)return null;for(i=0;i<p.items.length;i++){if(p.items[i].id===view.itemId)return p.items[i]}return null}
 function isDone(i){return i.status==="done"}
 function daysLate(d){if(!d)return 0;var a=new Date(isoToday()+"T12:00:00");var b=new Date(d+"T12:00:00");return Math.floor((a-b)/86400000)}
-function overdueDays(i){if(isDone(i))return 0;var a=[],n=0,k;if(i.dueDate)a.push(i.dueDate);if(i.followDate)a.push(i.followDate);if(i.requiresMaterial&&i.materialStatus!=="received"&&i.expectedDate)a.push(i.expectedDate);for(k=0;k<a.length;k++){n=Math.max(n,daysLate(a[k]))}return n}
+function overdueDays(i){if(isDone(i)||!i.reminderAt)return 0;return Math.max(0,daysLate(i.reminderAt))}
 function isOverdue(i){return overdueDays(i)>0}
 function isReady(i){return !isDone(i)&&i.requiresMaterial&&i.materialStatus==="received"}
-function bucket(i){if(isOverdue(i))return "overdue";if(i.actionType==="follow")return "follow";if(i.actionType==="check")return "check";return "do"}
-function counts(p){var r={open:0,done:0,over:0,follow:0,ready:0},i,x;for(i=0;i<p.items.length;i++){x=p.items[i];if(isDone(x))r.done++;else r.open++;if(isOverdue(x))r.over++;if(!isDone(x)&&x.actionType==="follow")r.follow++;if(isReady(x))r.ready++}return r}
+function bucket(i){if(isOverdue(i))return "overdue";if(i.requiresMaterial&&i.materialStatus==="ordered")return "follow";return "do"}
+function counts(p){var r={open:0,done:0,over:0,follow:0,ready:0},i,x;for(i=0;i<p.items.length;i++){x=p.items[i];if(isDone(x))r.done++;else r.open++;if(isOverdue(x))r.over++;if(!isDone(x)&&x.requiresMaterial&&x.materialStatus==="ordered")r.follow++;if(isReady(x))r.ready++}return r}
 
 function top(title,sub,back){
  return '<div class="top">'+(back?'<button class="back" onclick="App.back()">‹</button>':'')+
@@ -91,8 +91,8 @@ function itemCard(i){
  if(late>0)meta+=(meta?" · ":"")+'<b style="color:var(--red)">'+late+' day'+(late===1?"":"s")+' overdue</b>';
  return '<div class="card item '+cls+'" onclick="App.openItem(\''+i.id+'\')">'+
  '<div class="between"><div><div class="title">'+esc(i.title)+'</div><div class="small">'+esc(i.area||"General")+' · '+(i.kind==="issue"?"Issue":"Task")+'</div></div><span>›</span></div>'+
- (i.nextAction?'<div class="next">NEXT → '+esc(i.nextAction)+'</div>':'')+
- (i.requiresMaterial?'<div class="meta">Material: <b>'+esc(i.materialStatus||"requested")+'</b>'+(i.materialStatus==="received"&&!isDone(i)?' · Installation pending':'')+'</div>':'')+
+ 
+ (i.requiresMaterial?'<div class="meta">Material: <b>'+esc(i.materialStatus||"requested")+'</b></div>':'')+
  '<div class="meta">'+meta+'</div></div>'
 }
 function projectsView(){
@@ -118,7 +118,7 @@ function todayView(){
  if(!c.open)h+='<div class="card empty">Everything is under control. ✓</div>';
  return h
 }
-function countAction(p,a){var n=0,i;for(i=0;i<p.items.length;i++){if(!isDone(p.items[i])&&p.items[i].actionType===a)n++}return n}
+function countAction(p,a){var n=0,i;for(i=0;i<p.items.length;i++){if(!isDone(p.items[i])&&bucket(p.items[i])===a)n++}return n}
 function listView(mode){
  var p=project(),arr=[],i,x,h='<div class="tabs"><button class="'+(view.filter==="all"?"on":"")+'" onclick="App.filter(\'all\')">All</button><button class="'+(view.filter==="open"?"on":"")+'" onclick="App.filter(\'open\')">Open</button><button class="'+(view.filter==="done"?"on":"")+'" onclick="App.filter(\'done\')">Done</button></div>';
  for(i=0;i<p.items.length;i++){x=p.items[i];if(mode==="issues"&&x.kind!=="issue")continue;if(mode==="materials"&&!x.requiresMaterial)continue;if(view.filter==="open"&&isDone(x))continue;if(view.filter==="done"&&!isDone(x))continue;arr.push(x)}
@@ -143,20 +143,13 @@ function projectShell(){
 }
 function editView(){
  var i=currentItem();
- if(!i)i={kind:"task",title:"",area:"",responsible:"",actionType:"do",nextAction:"",dueDate:"",followDate:"",requiresMaterial:false,materialStatus:"requested",requestedDate:"",orderedDate:"",expectedDate:"",receivedDate:"",solution:"",notes:""};
+ if(!i)i={kind:"task",title:"",area:"",responsible:"",requiresMaterial:false,materialStatus:"none",status:"open",history:[]};
  return '<div class="wrap">'+top(i.id?"Edit Item":"New Item",project().name,true)+'<div class="card">'+
- fieldSelect("kind","TYPE",[["task","Task"],["issue","Issue / New Request"]],i.kind)+
- fieldText("title","TITLE *",i.title,"e.g. Install AC grill")+
- fieldText("area","AREA",i.area,"e.g. Corridor")+
- fieldText("responsible","RESPONSIBLE",i.responsible,"Person / team / supplier")+
- fieldText("nextAction","WHAT HAPPENS NEXT?",i.nextAction,"e.g. Install grill / Receive Rev.04")+
- fieldSelect("actionType","ACTION",[["do","🔨 Do"],["check","👁 Check"],["follow","📞 Follow up"]],i.actionType)+
- fieldDate("dueDate","DUE DATE",i.dueDate)+fieldDate("followDate","FOLLOW-UP DATE",i.followDate)+
- '<div class="toggle"><b>Requires material / order</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+' onchange="App.toggleMaterial()"></div>'+
- '<div id="materialBox" class="'+(i.requiresMaterial?"":"hidden")+'">'+
- fieldSelect("materialStatus","MATERIAL STATUS",[["requested","Requested"],["ordered","Ordered"],["received","Received"]],i.materialStatus||"requested")+
- fieldDate("requestedDate","REQUESTED DATE",i.requestedDate)+fieldDate("orderedDate","ORDERED DATE",i.orderedDate)+fieldDate("expectedDate","EXPECTED DELIVERY",i.expectedDate)+fieldDate("receivedDate","RECEIVED DATE",i.receivedDate)+'</div>'+
- fieldArea("solution","SOLUTION / DECISION",i.solution)+fieldArea("notes","NOTES",i.notes)+
+ fieldSelect("kind","TYPE",[["task","Task"],["issue","Issue"]],i.kind||"task")+
+ fieldText("title","WHAT?",i.title,"e.g. Install AC grille")+
+ fieldText("area","WHERE?",i.area,"e.g. Corridor")+
+ fieldText("responsible","WHO?",i.responsible,"e.g. Nisha")+
+ '<div class="toggle"><b>Material needed</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+'></div>'+
  '<button class="btn primary block" onclick="App.saveItem()">Save</button></div></div>'
 }
 function fieldText(id,label,val,ph){return '<div class="field"><label>'+label+'</label><input id="'+id+'" value="'+esc(val||"")+'" placeholder="'+esc(ph||"")+'"></div>'}
@@ -165,20 +158,25 @@ function fieldArea(id,label,val){return '<div class="field"><label>'+label+'</la
 function fieldSelect(id,label,opts,val){var h='<div class="field"><label>'+label+'</label><select id="'+id+'">',i;for(i=0;i<opts.length;i++)h+='<option value="'+opts[i][0]+'" '+(val===opts[i][0]?"selected":"")+'>'+opts[i][1]+'</option>';return h+'</select></div>'}
 function detailView(){
  var i=currentItem();if(!i){view.screen="project";return projectShell()}
- var h='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card item '+(isReady(i)?"ready":bucket(i))+'">'+
- '<div class="between"><span class="pill '+(isDone(i)?"green":isOverdue(i)?"red":"blue")+'">'+(isDone(i)?"DONE":isOverdue(i)?"OVERDUE":"OPEN")+'</span><button class="back" onclick="App.editItem()">Edit</button></div>'+
- '<div class="section">'+esc(i.area||"GENERAL")+'</div>'+
- (i.nextAction?'<div class="title">NEXT → '+esc(i.nextAction)+'</div>':'')+
- '<div class="meta">'+(i.responsible?'Responsible: <b>'+esc(i.responsible)+'</b>':'No responsible assigned')+'</div>'+
- '<div class="meta">Action: '+(i.actionType==="follow"?"📞 Follow up":i.actionType==="check"?"👁 Check":"🔨 Do")+(i.followDate?' · Follow: '+fmt(i.followDate):'')+(i.dueDate?' · Due: '+fmt(i.dueDate):'')+'</div>'+
- (i.solution?'<div class="section">SOLUTION / DECISION</div><div>'+esc(i.solution)+'</div>':'')+
- (i.requiresMaterial?'<div class="section">MATERIAL / ORDER</div><div class="between"><b>'+esc(i.materialStatus||"requested")+'</b><span class="pill '+(i.materialStatus==="received"?"green":"orange")+'">'+(i.materialStatus==="received"?"AVAILABLE":"PENDING")+'</span></div><div class="meta">Requested '+fmt(i.requestedDate)+' · Ordered '+fmt(i.orderedDate)+' · Expected '+fmt(i.expectedDate)+' · Received '+fmt(i.receivedDate)+'</div>':'')+
- (i.notes?'<div class="section">NOTES</div><div class="small">'+esc(i.notes)+'</div>':'')+
- '<div class="actions">'+(!isDone(i)?'<button class="btn success" onclick="App.markDone()">✓ Mark Done</button>':'<button class="btn secondary" onclick="App.reopen()">Reopen</button>')+'<button class="btn secondary" onclick="App.addUpdate()">+ Update</button></div></div>'+
- '<div class="section">HISTORY</div><div class="card"><div class="timeline">';
+ var late=overdueDays(i),m=i.requiresMaterial?(i.materialStatus||"requested"):"none";
+ var st=isDone(i)?"DONE":m==="received"?"READY TO INSTALL":m==="ordered"?"WAITING MATERIAL":m==="requested"?"MATERIAL TO ORDER":late>0?"OVERDUE":"OPEN";
+ var cl=isDone(i)||m==="received"?"green":m==="ordered"||m==="requested"?"orange":late>0?"red":"blue";
+ var h='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card"><div class="between"><span class="pill '+cl+'">'+st+'</span><button class="back" onclick="App.editItem()">Edit</button></div>'+
+ '<div style="margin-top:22px"><div class="title">'+esc(i.area||"General")+'</div>'+(i.responsible?'<div class="small" style="margin-top:7px">Responsible: <b>'+esc(i.responsible)+'</b></div>':'')+'</div>';
+ if(!isDone(i)&&i.requiresMaterial){
+  if(m==="requested")h+='<button class="btn primary block" style="margin-top:22px" onclick="App.materialStep(\'ordered\')">🛒 ORDERED</button>';
+  if(m==="ordered")h+='<div class="notice">Ordered '+ageText(i.orderedAt)+'</div><button class="btn success block" style="margin-top:12px" onclick="App.materialStep(\'received\')">✓ RECEIVED</button>';
+  if(m==="received")h+='<button class="btn success block" style="margin-top:22px" onclick="App.materialStep(\'installed\')">🔧 INSTALLED</button>';
+  if(m==="installed")h+='<button class="btn success block" style="margin-top:22px" onclick="App.markDone()">✓ DONE</button>';
+ }
+ if(!isDone(i)&&!i.requiresMaterial)h+='<button class="btn success block" style="margin-top:22px" onclick="App.markDone()">✓ DONE</button>';
+ if(!isDone(i))h+='<button class="btn secondary block" style="margin-top:10px" onclick="App.remind()">🔔 REMIND ME IN 5 DAYS</button>';
+ if(isDone(i))h+='<button class="btn secondary block" style="margin-top:22px" onclick="App.reopen()">Reopen</button>';
+ h+='</div><div class="section">HISTORY</div><div class="card"><div class="timeline">';
  var a=i.history||[],j;if(!a.length)h+='<div class="small">No updates yet.</div>';else for(j=a.length-1;j>=0;j--)h+='<div class="event"><b>'+new Date(a[j].at).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+'</b><div class="small">'+esc(a[j].text)+'</div></div>';
  h+='</div></div><button class="btn danger block" onclick="App.deleteItem()">Delete Item</button></div>';return h
 }
+function ageText(at){if(!at)return "";var d=Math.max(0,Math.floor((new Date()-new Date(at))/86400000));return d===0?"today":d+" day"+(d===1?"":"s")+" ago"}
 function render(){
  var app=q("app");if(!app)return;
  if(view.screen==="projects")app.innerHTML=projectsView();
@@ -196,7 +194,9 @@ window.App={
  openItem:function(id){view.itemId=id;view.screen="detail";render()},
  editItem:function(){view.screen="edit";render()},
  toggleMaterial:function(){var b=q("materialBox"),c=q("requiresMaterial");if(b&&c)b.className=c.checked?"":"hidden"},
- saveItem:function(){var title=q("title").value.replace(/^\s+|\s+$/g,"");if(!title){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};if(!(i.history instanceof Array))i.history=[];i.kind=q("kind").value;i.title=title;i.area=q("area").value;i.responsible=q("responsible").value;i.nextAction=q("nextAction").value;i.actionType=q("actionType").value;i.dueDate=q("dueDate").value;i.followDate=q("followDate").value;i.requiresMaterial=q("requiresMaterial").checked;i.materialStatus=i.requiresMaterial?q("materialStatus").value:"none";i.requestedDate=i.requiresMaterial?q("requestedDate").value:"";i.orderedDate=i.requiresMaterial?q("orderedDate").value:"";i.expectedDate=i.requiresMaterial?q("expectedDate").value:"";i.receivedDate=i.requiresMaterial?q("receivedDate").value:"";i.solution=q("solution").value;i.notes=q("notes").value;i.updatedAt=stamp();if(!old){i.history.push({at:stamp(),text:"Item created"});project().items.unshift(i)}else{i.history.push({at:stamp(),text:"Item updated"})}save();view.itemId=i.id;view.screen="detail";render()},
+ saveItem:function(){var title=q("title").value.replace(/^\\s+|\\s+$/g,"");if(!title){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};if(!(i.history instanceof Array))i.history=[];i.kind=q("kind").value;i.title=title;i.area=q("area").value;i.responsible=q("responsible").value;i.requiresMaterial=q("requiresMaterial").checked;if(i.requiresMaterial&&(!old||!old.requiresMaterial)){i.materialStatus="requested";i.requestedAt=stamp();i.history.push({at:stamp(),text:"Material requested"})}if(!i.requiresMaterial)i.materialStatus="none";i.updatedAt=stamp();if(!old){i.history.unshift({at:stamp(),text:"Item created"});project().items.unshift(i)}else{i.history.push({at:stamp(),text:"Item updated"})}save();view.itemId=i.id;view.screen="detail";render()},
+ materialStep:function(step){var i=currentItem();if(!i)return;if(!(i.history instanceof Array))i.history=[];i.materialStatus=step;var labels={ordered:"Material ordered",received:"Material received",installed:"Installed"};i[step+"At"]=stamp();i.history.push({at:stamp(),text:labels[step]||step});save();render()},
+ remind:function(){var i=currentItem();if(!i)return;var d=new Date();d.setDate(d.getDate()+5);i.reminderAt=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Reminder set for 5 days"});save();render()},
  markDone:function(){var i=currentItem();if(!i)return;i.status="done";if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Marked as done"});save();render()},
  reopen:function(){var i=currentItem();if(!i)return;i.status="open";if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Reopened"});save();render()},
  addUpdate:function(){var t=prompt("Quick update / note");if(!t)return;var i=currentItem();if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:t});save();render()},
