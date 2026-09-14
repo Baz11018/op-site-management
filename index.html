@@ -38,7 +38,7 @@ button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:650px;mar
 .historyToggle{border:0;background:none;color:var(--blue);font-weight:750;padding:10px 2px}.timeline{border-left:2px solid #e5e9f1;margin:8px 0 0 8px;padding-left:15px}.event{margin-bottom:12px}
 .hidden{display:none!important}
 @media print{body{background:#fff;padding:0}.nav,.fab,.no-print,.back{display:none!important}.wrap{max-width:none;padding:0}.card{box-shadow:none;border:1px solid #ddd}.report-title{display:block!important}}.report-title{display:none}
-</style>
+.photoThumb{width:52px;height:52px;border-radius:13px;object-fit:cover}.photoPick{display:flex;align-items:center;gap:12px;background:#f3f6fb;border-radius:18px;padding:12px;margin:10px 0 14px}.photoOverlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99;display:grid;place-items:center;padding:18px}.photoOverlay img{max-width:100%;max-height:90vh;border-radius:18px}.metric{border:0;text-align:left;color:inherit}.materialRow{cursor:pointer}.stepList{display:grid;gap:9px;margin-top:15px}.stepBtn{width:100%;border:0;border-radius:17px;padding:15px;text-align:left;font-weight:850;background:#eef2f8;color:#6e788b}.stepBtn.done{background:#e5f8ed;color:#087f43}.stepBtn.current{background:#e9f3ff;color:#1766d6;box-shadow:inset 0 0 0 2px #2780ff}.areaRow{display:flex;align-items:center;padding:17px;border-bottom:1px solid var(--line);cursor:pointer}.areaRow b{flex:1}.tinyDanger{display:block;border:0;background:none;color:#d94b55;font-size:13px;font-weight:750;margin:22px auto}.filterTitle{font-size:25px;font-weight:850}</style>
 </head>
 <body>
 <div id="app"></div>
@@ -47,10 +47,10 @@ button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:650px;mar
 "use strict";
 
 var APP="OP Site Management";
-var VERSION="1.2";
+var VERSION="1.3";
 var KEY="op-site-management-v1-data";
 var state={projects:[]};
-var view={screen:"projects",projectId:"",tab:"today",filter:"all",itemId:""};
+var view={smartFilter:null,areaFilter:null,areaKeys:[],tempPhoto:'',screen:"projects",projectId:"",tab:"today",filter:"all",itemId:""};
 
 function q(id){return document.getElementById(id)}
 function esc(s){s=String(s==null?"":s);return s.replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -104,81 +104,24 @@ function projectsView(){
  '<div class="version">'+APP+' v'+VERSION+'</div></div>';
  return h
 }
-function todayView(){
- var p=project(),c=counts(p),h='<div class="card hero"><h1>Today</h1><div class="small">'+new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})+'</div>'+
- '<div class="grid4"><div class="metric red"><b>'+c.over+'</b><span>OVERDUE</span></div><div class="metric orange"><b>'+c.follow+'</b><span>FOLLOW UP</span></div><div class="metric blue"><b>'+countWaiting(p)+'</b><span>WAITING MATERIAL</span></div><div class="metric green"><b>'+c.ready+'</b><span>READY TO INSTALL</span></div></div></div>';
- var arr=[],i;for(i=0;i<p.items.length;i++)if(!isDone(p.items[i]))arr.push(p.items[i]);
- if(arr.length){h+='<div class="section">NEXT TO FOLLOW UP</div>';for(i=0;i<arr.length;i++)h+=itemCard(arr[i])}else h+='<div class="card empty">Everything is under control. ✓</div>';
- return h
-}
+function todayView(){var p=project(),c=counts(p),x='<div class="card hero"><h1>Today</h1><div class="small">'+new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})+'</div><div class="grid4"><button class="metric red" onclick="App.smart(\'overdue\')"><b>'+c.over+'</b><span>OVERDUE</span></button><button class="metric orange" onclick="App.smart(\'follow\')"><b>'+c.follow+'</b><span>FOLLOW UP</span></button><button class="metric blue" onclick="App.smart(\'waiting\')"><b>'+countWaiting(p)+'</b><span>WAITING MATERIAL</span></button><button class="metric green" onclick="App.smart(\'ready\')"><b>'+c.ready+'</b><span>READY TO INSTALL</span></button></div></div>',a=[],i,z;for(i=0;i<p.items.length;i++){z=p.items[i];if(!isDone(z)&&(isOverdue(z)||(z.requiresMaterial&&z.materialStatus==="ordered")||isReady(z)))a.push(z)}if(a.length){x+='<div class="section">NEEDS ATTENTION</div>';for(i=0;i<a.length;i++)x+=itemCard(a[i])}else x+='<div class="card empty">Everything is under control. ✓</div>';return x}
 function countWaiting(p){var n=0,i;for(i=0;i<p.items.length;i++)if(!isDone(p.items[i])&&p.items[i].requiresMaterial&&p.items[i].materialStatus==="ordered")n++;return n}
 function countAction(p,a){var n=0,i;for(i=0;i<p.items.length;i++){if(!isDone(p.items[i])&&bucket(p.items[i])===a)n++}return n}
-function listView(mode){
- var p=project(),arr=[],i,x,h='';
- if(mode==="materials"){
-   var req=0,ord=0,rec=0,ready=0;
-   for(i=0;i<p.items.length;i++){x=p.items[i];if(isDone(x)||!x.requiresMaterial)continue;if(x.materialStatus==="requested")req++;if(x.materialStatus==="ordered")ord++;if(x.materialStatus==="received")rec++;if(x.materialStatus==="received")ready++}
-   h='<div class="section">MATERIALS</div><div class="materialGroups card">'+
-   matRow("📦","Requested",req,"orange")+matRow("🛒","Ordered",ord,"blue")+matRow("🚚","Received",rec,"blue")+matRow("🔧","Ready to install",ready,"green")+'</div>';
-   var mats=[];for(i=0;i<p.items.length;i++)if(!isDone(p.items[i])&&p.items[i].requiresMaterial)mats.push(p.items[i]);
-   if(mats.length){h+='<div class="section">ITEMS</div>';for(i=0;i<mats.length;i++)h+=itemCard(mats[i])}
-   return h;
- }
- for(i=0;i<p.items.length;i++){x=p.items[i];if(mode==="issues"&&x.kind!=="issue")continue;if(view.filter==="open"&&isDone(x))continue;if(view.filter==="done"&&!isDone(x))continue;arr.push(x)}
- h='<div class="tabs"><button class="'+(view.filter==="all"?"on":"")+'" onclick="App.filter(\'all\')">All</button><button class="'+(view.filter==="open"?"on":"")+'" onclick="App.filter(\'open\')">Open</button><button class="'+(view.filter==="done"?"on":"")+'" onclick="App.filter(\'done\')">Done</button></div><div class="section">'+(mode==="issues"?"ISSUES":"ITEMS")+' · '+arr.length+'</div>';
- if(!arr.length)return h+'<div class="card empty">Nothing here.</div>';for(i=0;i<arr.length;i++)h+=itemCard(arr[i]);return h
-}
-function matRow(icon,label,n,cl){return '<div class="materialRow"><div class="statusIcon '+cl+'">'+icon+'</div><b>'+label+'</b><span class="count">'+n+'</span><span class="arrow">›</span></div>'}
-function reportView(){
- var p=project(),c=counts(p),h='<div class="report-title"><h1>'+esc(p.name)+'</h1><p>Project Action Report · '+fmt(isoToday())+'</p></div>';
- h+='<div class="card"><div class="title">Project Action Report</div><div class="small" style="margin-top:5px">'+esc(p.name)+' only</div>'+
- '<div class="grid4"><div class="metric"><b>'+c.open+'</b><span>OPEN</span></div><div class="metric"><b>'+c.done+'</b><span>DONE</span></div><div class="metric"><b>'+c.over+'</b><span>OVERDUE</span></div><div class="metric"><b>'+c.ready+'</b><span>READY</span></div></div>'+
- '<button class="btn primary block no-print" style="margin-top:14px" onclick="window.print()">Print / Save as PDF</button></div>';
- var i;if(p.items.length){h+='<div class="section">ITEMS</div>';for(i=0;i<p.items.length;i++)h+=itemCard(p.items[i])}
- return h
-}
-function projectShell(){
- var p=project(),body="";
- if(!p){view.screen="projects";return projectsView()}
- if(view.tab==="today")body=todayView();else if(view.tab==="items")body=listView("items");else if(view.tab==="issues")body=listView("issues");else if(view.tab==="materials")body=listView("materials");else body=reportView();
- return '<div class="wrap">'+top(p.name,"OP Site Management",true)+body+'</div><button class="fab" onclick="App.newItem()">+</button>'+nav()
-}
-function editView(){
- var i=currentItem();if(!i)i={kind:"task",title:"",area:"",responsible:"",requiresMaterial:false,materialStatus:"none",status:"open",history:[]};
- return '<div class="wrap">'+top(i.id?"Edit Item":"New Item",project().name,true)+'<div class="card">'+
- '<div class="segment"><button id="segTask" class="'+((i.kind||"task")==="task"?"on":"")+'" onclick="App.kind(\'task\')">Task</button><button id="segIssue" class="'+(i.kind==="issue"?"on":"")+'" onclick="App.kind(\'issue\')">Issue</button></div><input id="kind" type="hidden" value="'+esc(i.kind||"task")+'">'+
- fieldText("title","WHAT?",i.title,"Install AC Grille")+fieldText("area","WHERE?",i.area,"Corridor")+fieldText("responsible","WHO?",i.responsible,"Nisha")+
- '<div class="toggle"><b>📦 Material needed</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+'></div>'+
- '<button class="btn primary block" onclick="App.saveItem()">Save</button></div></div>'
-}
+function listView(mode){var p=project(),a=[],i,z,x="";if(mode==="materials"){var r=0,o=0,c=0;for(i=0;i<p.items.length;i++){z=p.items[i];if(isDone(z)||!z.requiresMaterial)continue;if(z.materialStatus==="requested")r++;if(z.materialStatus==="ordered")o++;if(z.materialStatus==="received")c++}return '<div class="section">MATERIALS</div><div class="materialGroups card">'+matRow("📦","Requested",r,"orange","requested")+matRow("🛒","Ordered",o,"blue","ordered")+matRow("🚚","Received",c,"blue","received")+matRow("🔧","Ready to install",c,"green","ready")+'</div>'}for(i=0;i<p.items.length;i++){z=p.items[i];if(mode==="issues"&&z.kind!=="issue")continue;if(view.filter==="open"&&isDone(z))continue;if(view.filter==="done"&&!isDone(z))continue;a.push(z)}x='<div class="section">'+(mode==="issues"?"ISSUES":"ITEMS")+' · '+a.length+'</div>';if(!a.length)return x+'<div class="card empty">Nothing here.</div>';for(i=0;i<a.length;i++)x+=itemCard(a[i]);return x}
+function matRow(ic,l,n,cl,k){return '<div class="materialRow" onclick="App.smart(\''+k+'\')"><div class="statusIcon '+cl+'">'+ic+'</div><b>'+l+'</b><span class="count">'+n+'</span><span class="arrow">›</span></div>'}
+function smartView(){var p=project(),k=view.smartFilter,a=[],i,z,t={overdue:"Overdue",follow:"Follow up",waiting:"Waiting material",ready:"Ready to install",requested:"Requested materials",ordered:"Ordered materials",received:"Received materials"}[k]||"Items";for(i=0;i<p.items.length;i++){z=p.items[i];if(isDone(z))continue;if(k==="overdue"&&isOverdue(z))a.push(z);if((k==="follow"||k==="waiting"||k==="ordered")&&z.requiresMaterial&&z.materialStatus==="ordered")a.push(z);if((k==="ready"||k==="received")&&isReady(z))a.push(z);if(k==="requested"&&z.requiresMaterial&&z.materialStatus==="requested")a.push(z)}var x='<div class="filterTitle">'+t+'</div><div class="small">'+a.length+' items</div><div class="section">ITEMS</div>';for(i=0;i<a.length;i++)x+=itemCard(a[i]);return x}
+function areasView(){var p=project(),m={},i,a,z,k,x='<div class="section">AREAS</div><div class="card">';for(i=0;i<p.items.length;i++){z=p.items[i];if(isDone(z))continue;a=(z.area||"General").trim()||"General";m[a]=(m[a]||0)+1}k=Object.keys(m).sort();view.areaKeys=k;for(i=0;i<k.length;i++)x+='<div class="areaRow" onclick="App.areaByIndex('+i+')"><b>⌖ &nbsp;'+esc(k[i])+'</b><span>'+m[k[i]]+' &nbsp;›</span></div>';return x+'</div>'}
+function areaItemsView(){var p=project(),a=[],i,z;for(i=0;i<p.items.length;i++){z=p.items[i];if(!isDone(z)&&(z.area||"General")===view.areaFilter)a.push(z)}var x='<div class="filterTitle">'+esc(view.areaFilter)+'</div><div class="small">'+a.length+' open Task / Issue</div><div class="section">WHAT IS MISSING HERE?</div>';for(i=0;i<a.length;i++)x+=itemCard(a[i]);return x}
+function reportView(){var p=project(),c=counts(p),areas={},i,z,a,x='<div class="card hero"><div class="title">Weekly Project Report</div><div class="small">Current project · one click</div><div class="grid4"><div class="metric blue"><b>'+c.open+'</b><span>OPEN</span></div><div class="metric red"><b>'+c.over+'</b><span>OVERDUE</span></div><div class="metric orange"><b>'+countWaiting(p)+'</b><span>WAITING MATERIAL</span></div><div class="metric green"><b>'+c.ready+'</b><span>READY</span></div></div></div>';for(i=0;i<p.items.length;i++){z=p.items[i];a=(z.area||"General").trim()||"General";if(!areas[a])areas[a]=[];areas[a].push(z)}x+='<div class="section">BY AREA</div>';var ks=Object.keys(areas).sort(),j;for(i=0;i<ks.length;i++){a=ks[i];x+='<div class="card"><div class="title">'+esc(a)+'</div>';for(j=0;j<areas[a].length;j++){z=areas[a][j];x+='<div class="small" style="padding:8px 0">'+(isDone(z)?"✓ ":"• ")+esc(z.title)+(z.kind==="issue"?" · Issue":" · Task")+'</div>'}x+='</div>'}x+='<div class="card"><button class="btn secondary block" onclick="App.areas()">Browse Areas</button><button class="btn primary block" style="margin-top:10px" onclick="window.print()">Generate Report</button></div>';return x}
+function projectShell(){var p=project(),b="";if(!p){view.screen="projects";return projectsView()}if(view.smartFilter)b=smartView();else if(view.areaFilter==="__areas__")b=areasView();else if(view.areaFilter)b=areaItemsView();else if(view.tab==="today")b=todayView();else if(view.tab==="items")b=listView("items");else if(view.tab==="issues")b=listView("issues");else if(view.tab==="materials")b=listView("materials");else b=reportView();return '<div class="wrap">'+top(p.name,"OP Site Management",true)+b+'</div><button class="fab" onclick="App.newItem()">+</button>'+nav()}
+function editView(){var i=currentItem();if(!i)i={kind:"task",title:"",area:"",requiresMaterial:false,materialStatus:"none",materialName:"",supplier:"",photo:"",status:"open",history:[]};var ps=view.tempPhoto||i.photo||"",ph=ps?'<img class="photoThumb" src="'+ps+'">':'<div class="photoThumb" style="display:grid;place-items:center">📷</div>';return '<div class="wrap">'+top(i.id?"Edit Item":"New Item",project().name,true)+'<div class="card"><div class="segment"><button id="segTask" class="'+((i.kind||"task")==="task"?"on":"")+'" onclick="App.kind(\'task\')">Task</button><button id="segIssue" class="'+(i.kind==="issue"?"on":"")+'" onclick="App.kind(\'issue\')">Issue</button></div><input id="kind" type="hidden" value="'+esc(i.kind||"task")+'">'+fieldText("title","WHAT?",i.title,"Install LED light")+areaField(i.area||"")+'<div class="photoPick">'+ph+'<div style="flex:1"><div class="small">REFERENCE PHOTO · OPTIONAL</div><button class="back" onclick="q(\'photoInput\').click()">'+(ps?"Replace":"+ Add photo")+'</button></div>'+(ps?'<button class="back" onclick="App.removePhoto()">×</button>':'')+'</div><input id="photoInput" class="hidden" type="file" accept="image/*" onchange="App.pickPhoto(this.files[0])"><div class="toggle"><b>📦 Material needed</b><input id="requiresMaterial" type="checkbox" '+(i.requiresMaterial?"checked":"")+' onchange="App.materialToggle()"></div><div id="materialFields" class="'+(i.requiresMaterial?"":"hidden")+'">'+fieldText("materialName","MATERIAL",i.materialName||"","LED 3000K")+fieldText("supplier","SUPPLIER",i.supplier||"","Signmedia / Nisha / Raju")+'</div><button class="btn primary block" onclick="App.saveItem()">Save</button></div></div>'}
+function areaField(v){var p=project(),m={},i,z,o="";for(i=0;i<p.items.length;i++){z=(p.items[i].area||"").trim();if(z)m[z]=1}Object.keys(m).sort().forEach(function(a){o+='<option value="'+esc(a)+'"></option>'});return '<div class="field"><label>WHERE?</label><input id="area" list="areaList" value="'+esc(v)+'" placeholder="Living"><datalist id="areaList">'+o+'</datalist></div>'}
 function fieldText(id,label,val,ph){return '<div class="field"><label>'+label+'</label><input id="'+id+'" value="'+esc(val||"")+'" placeholder="'+esc(ph||"")+'"></div>'}
 function fieldDate(id,label,val){return '<div class="field"><label>'+label+'</label><input id="'+id+'" type="date" value="'+esc(val||"")+'"></div>'}
 function fieldArea(id,label,val){return '<div class="field"><label>'+label+'</label><textarea id="'+id+'">'+esc(val||"")+'</textarea></div>'}
 function fieldSelect(id,label,opts,val){var h='<div class="field"><label>'+label+'</label><select id="'+id+'">',i;for(i=0;i<opts.length;i++)h+='<option value="'+opts[i][0]+'" '+(val===opts[i][0]?"selected":"")+'>'+opts[i][1]+'</option>';return h+'</select></div>'}
-function detailView(){
- var i=currentItem();if(!i){view.screen="project";return projectShell()}
- var m=i.requiresMaterial?(i.materialStatus||"requested"):"none",cl="blue",ico="✓",st="OPEN",sub="";
- if(isDone(i)){cl="green";ico="✓";st="DONE"}
- else if(m==="requested"){cl="orange";ico="📦";st="MATERIAL NEEDED";sub="Ready to be ordered"}
- else if(m==="ordered"){cl="orange";ico="📦";st="WAITING MATERIAL";sub="Ordered "+ageText(i.orderedAt)}
- else if(m==="received"){cl="green";ico="🚚";st="MATERIAL RECEIVED";sub="Ready to install"}
- else if(m==="installed"){cl="green";ico="🔧";st="INSTALLED";sub="Ready to close"}
- var h='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card"><div class="between"><div></div><button class="back" onclick="App.editItem()">Edit</button></div>'+
- '<div style="margin-top:4px"><div class="title">⌖ '+esc(i.area||"General")+'</div>'+(i.responsible?'<div class="small" style="margin-top:8px">♙ '+esc(i.responsible)+'</div>':'')+'</div>'+
- '<div class="statusPanel '+cl+'"><div class="statusBig">'+ico+' &nbsp;'+st+'</div>'+(sub?'<div class="statusSub">'+sub+'</div>':'')+'</div><div class="actionStack">';
- if(!isDone(i)&&i.requiresMaterial){
-  if(m==="requested")h+='<button class="actionBtn blue" onclick="App.materialStep(\'ordered\')">🛒 &nbsp; MARK AS ORDERED</button>';
-  if(m==="ordered")h+='<button class="actionBtn green" onclick="App.materialStep(\'received\')">🚚 &nbsp; MARK AS RECEIVED</button>';
-  if(m==="received")h+='<button class="actionBtn green" onclick="App.materialStep(\'installed\')">🔧 &nbsp; MARK AS INSTALLED</button>';
-  if(m==="installed")h+='<button class="actionBtn blue" onclick="App.markDone()">✓ &nbsp; MARK AS DONE</button>';
- }
- if(!isDone(i)&&!i.requiresMaterial)h+='<button class="actionBtn blue" onclick="App.markDone()">✓ &nbsp; MARK AS DONE</button>';
- if(!isDone(i))h+='<button class="actionBtn gray" onclick="App.remind()">🔔 &nbsp; REMIND ME IN 5 DAYS</button>';
- if(isDone(i))h+='<button class="actionBtn gray" onclick="App.reopen()">↶ &nbsp; REOPEN</button>';
- h+='</div></div><button class="historyToggle" onclick="App.toggleHistory()">Show history</button><div id="historyBox" class="card hidden"><div class="timeline">';
- var a=i.history||[],j;if(!a.length)h+='<div class="small">No updates yet.</div>';else for(j=a.length-1;j>=0;j--)h+='<div class="event"><b>'+new Date(a[j].at).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+'</b><div class="small">'+esc(a[j].text)+'</div></div>';
- h+='</div></div><button class="btn danger block" onclick="App.deleteItem()">Delete Item</button></div>';return h
-}
+function detailView(){var i=currentItem();if(!i){view.screen="project";return projectShell()}var m=i.requiresMaterial?(i.materialStatus||"requested"):"none",st=isDone(i)?"DONE":m==="requested"?"MATERIAL NEEDED":m==="ordered"?"WAITING MATERIAL":m==="received"?"MATERIAL RECEIVED":m==="installed"?"INSTALLED":"OPEN",cl=(isDone(i)||m==="received"||m==="installed")?"green":m==="requested"||m==="ordered"?"orange":"blue",x='<div class="wrap">'+top(i.title,project().name,true)+'<div class="card"><div class="between"><div class="small">⌖ '+esc(i.area||"General")+'</div><button class="back" onclick="App.editItem()">Edit</button></div>';if(i.photo)x+='<img class="photoThumb" style="margin-top:12px" src="'+i.photo+'" onclick="App.showPhoto(\''+i.id+'\')">';if(i.requiresMaterial&&i.materialName)x+='<div class="small" style="margin-top:12px">📦 <b>'+esc(i.materialName)+'</b>'+(i.supplier?' · '+esc(i.supplier):'')+'</div>';x+='<div class="statusPanel '+cl+'"><div class="statusBig">'+st+'</div></div>';if(i.requiresMaterial)x+=workflow(i);else if(!isDone(i))x+='<div class="actionStack"><button class="actionBtn blue" onclick="App.markDone()">✓ MARK AS DONE</button></div>';if(!isDone(i))x+='<div class="actionStack"><button class="actionBtn gray" onclick="App.remind()">🔔 REMIND ME IN 5 DAYS</button></div>';x+='</div><button class="historyToggle" onclick="App.toggleHistory()">Show history</button><div id="historyBox" class="card hidden"><div class="timeline">';var a=i.history||[],j;for(j=a.length-1;j>=0;j--)x+='<div class="event"><b>'+new Date(a[j].at).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+'</b><div class="small">'+esc(a[j].text)+'</div></div>';x+='</div></div><button class="tinyDanger" onclick="App.deleteItem()">Delete Item</button></div>';return x}
+function workflow(i){var s=["requested","ordered","received","installed","done"],l=["📦 Requested","🛒 Ordered","🚚 Received","🔧 Installed","✓ Done"],c=isDone(i)?4:Math.max(0,s.indexOf(i.materialStatus||"requested")),x='<div class="stepList">';for(var n=0;n<s.length;n++)x+='<button class="stepBtn '+(n<c?"done":n===c?"current":"")+'" onclick="App.setStep(\''+s[n]+'\')">'+(n<c?"✓ &nbsp;":"")+l[n]+'</button>';return x+'</div>'}
 function ageText(at){if(!at)return "";var d=Math.max(0,Math.floor((new Date()-new Date(at))/86400000));return d===0?"today":d+" day"+(d===1?"":"s")+" ago"}
 function render(){
  var app=q("app");if(!app)return;
@@ -187,19 +130,20 @@ function render(){
  else if(view.screen==="detail")app.innerHTML=detailView();
  else app.innerHTML=projectShell()
 }
-window.App={
+window.App={smart:function(k){view.smartFilter=k;view.areaFilter=null;render()},areas:function(){view.smartFilter=null;view.areaFilter="__areas__";render()},areaByIndex:function(n){view.areaFilter=view.areaKeys[n];render()},materialToggle:function(){q("materialFields").className=q("requiresMaterial").checked?"":"hidden"},pickPhoto:function(f){if(!f)return;var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var sc=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext("2d").drawImage(im,0,0,c.width,c.height);view.tempPhoto=c.toDataURL("image/jpeg",.72);render()};im.src=r.result};r.readAsDataURL(f)},removePhoto:function(){view.tempPhoto="";var i=currentItem();if(i){i.photo="";save()}render()},showPhoto:function(id){var i=currentItem();if(!i||i.id!==id||!i.photo)return;var d=document.createElement("div");d.className="photoOverlay";d.onclick=function(){d.remove()};d.innerHTML='<img src="'+i.photo+'">';document.body.appendChild(d)},setStep:function(s){var i=currentItem(),p=isDone(i)?"done":i.materialStatus;if(s==="done"){i.status="done";i.materialStatus="installed"}else{i.status="open";i.materialStatus=s}i.history.push({at:stamp(),text:"Workflow: "+p+" → "+s});i[s+"At"]=stamp();save();render()},
+
  kind:function(k){q("kind").value=k;q("segTask").className=k==="task"?"on":"";q("segIssue").className=k==="issue"?"on":""},
  toggleHistory:function(){var b=q("historyBox");if(b)b.className=b.className.indexOf("hidden")>=0?"card":"card hidden"},
  newProject:function(){var n=prompt("Project name");if(!n||!n.replace(/\s/g,""))return;var p={id:uid(),name:n.replace(/^\s+|\s+$/g,""),createdAt:stamp(),items:[]};state.projects.unshift(p);save();view={screen:"project",projectId:p.id,tab:"today",filter:"all",itemId:""};render()},
  openProject:function(id){view={screen:"project",projectId:id,tab:"today",filter:"all",itemId:""};render()},
- tab:function(t){view.tab=t;view.screen="project";view.filter="all";render()},
+ tab:function(t){view.smartFilter=null;view.areaFilter=null;view.tab=t;view.screen="project";view.filter="all";render()},
  filter:function(f){view.filter=f;render()},
- back:function(){if(view.screen==="edit"||view.screen==="detail"){view.screen="project"}else if(view.screen==="project"){view.screen="projects";view.projectId=""}else view.screen="projects";render()},
+ back:function(){if(view.smartFilter||view.areaFilter){view.smartFilter=null;view.areaFilter=null;render();return}if(view.screen==="edit"||view.screen==="detail"){view.screen="project"}else if(view.screen==="project"){view.screen="projects";view.projectId=""}else view.screen="projects";render()},
  newItem:function(){view.itemId="";view.screen="edit";render()},
  openItem:function(id){view.itemId=id;view.screen="detail";render()},
  editItem:function(){view.screen="edit";render()},
  toggleMaterial:function(){var b=q("materialBox"),c=q("requiresMaterial");if(b&&c)b.className=c.checked?"":"hidden"},
- saveItem:function(){var title=q("title").value.replace(/^\s+|\s+$/g,"");if(!title){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};if(!(i.history instanceof Array))i.history=[];i.kind=q("kind").value;i.title=title;i.area=q("area").value;i.responsible=q("responsible").value;i.requiresMaterial=q("requiresMaterial").checked;if(i.requiresMaterial&&(!old||!old.requiresMaterial)){i.materialStatus="requested";i.requestedAt=stamp();i.history.push({at:stamp(),text:"Material requested"})}if(!i.requiresMaterial)i.materialStatus="none";i.updatedAt=stamp();if(!old){i.history.unshift({at:stamp(),text:"Item created"});project().items.unshift(i)}else{i.history.push({at:stamp(),text:"Item updated"})}save();view.itemId=i.id;view.screen="detail";render()},
+ saveItem:function(){var t=q("title").value.replace(/^\s+|\s+$/g,"");if(!t){alert("Add a title.");return}var old=currentItem(),i=old||{id:uid(),createdAt:stamp(),status:"open",history:[]};i.kind=q("kind").value;i.title=t;i.area=q("area").value;i.requiresMaterial=q("requiresMaterial").checked;i.materialName=i.requiresMaterial?q("materialName").value:"";i.supplier=i.requiresMaterial?q("supplier").value:"";if(view.tempPhoto)i.photo=view.tempPhoto;if(i.requiresMaterial&&(!old||!old.requiresMaterial)){i.materialStatus="requested";i.requestedAt=stamp()}if(!i.requiresMaterial)i.materialStatus="none";if(!old){i.history.unshift({at:stamp(),text:"Item created"});project().items.unshift(i)}else i.history.push({at:stamp(),text:"Item updated"});save();view.tempPhoto="";view.itemId=i.id;view.screen="detail";render()},
  materialStep:function(step){var i=currentItem();if(!i)return;if(!(i.history instanceof Array))i.history=[];i.materialStatus=step;var labels={ordered:"Material ordered",received:"Material received",installed:"Installed"};i[step+"At"]=stamp();i.history.push({at:stamp(),text:labels[step]||step});save();render()},
  remind:function(){var i=currentItem();if(!i)return;var d=new Date();d.setDate(d.getDate()+5);i.reminderAt=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Reminder set for 5 days"});save();render()},
  markDone:function(){var i=currentItem();if(!i)return;i.status="done";if(!(i.history instanceof Array))i.history=[];i.history.push({at:stamp(),text:"Marked as done"});save();render()},
